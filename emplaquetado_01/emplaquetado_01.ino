@@ -5,6 +5,9 @@
   lee ambos, tag y teclado.
   entrega a la estación de almacén granel
   no tara
+  //el objetivo de la presente modificación es que tare al presionar el botón 39
+  1. identifico si está leyendo el botón. ya he verficado físicamente que el boton está bueno.
+  
 */
 
 //#include <EEPROM.h>//https://github.com/espressif/arduino-esp32/tree/master/libraries/EEPROM
