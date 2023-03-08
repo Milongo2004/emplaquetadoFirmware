@@ -7,7 +7,7 @@
   no tara
   //el objetivo de la presente modificación es que tare al presionar el botón 39
   1. identifico si está leyendo el botón. ya he verficado físicamente que el boton está bueno.
-  
+
 */
 
 //#include <EEPROM.h>//https://github.com/espressif/arduino-esp32/tree/master/libraries/EEPROM
@@ -433,12 +433,14 @@ void leerTag() {
         lectura = 1;
 
       }
-      
+
     }
     else {
 
       revisarWiFi();
-      revisarWiFi();
+      if (digitalRead(tareButton) == HIGH) {
+        scale.tare();
+      }
       if (digitalRead(WIFI_PIN) == HIGH) {
         //hum = 2;
         lcd.clear();
@@ -704,13 +706,13 @@ void leerTeclado() {
     }
     else if (tecla == '#') {
       //aquí guardo el string en un rótulo,
-      
-        rotulo = datoTag;
-        cuentaLecturas += 1;
-        contadorTeclado = 0;
-        idProduccionString = "";
-      
-     
+
+      rotulo = datoTag;
+      cuentaLecturas += 1;
+      contadorTeclado = 0;
+      idProduccionString = "";
+
+
       lcd.setCursor(4, 0);
       lcd.print(datoTag + "->OK");
       Serial.print("valor del rótulo después de digitar uno = ");
@@ -763,10 +765,11 @@ void esperaEnvio() {
     //      Serial.print(" Variable masa: ");
     //      Serial.print(masa);
     //      Serial.println();
+    /*
     if (digitalRead(tareButton) == HIGH) {
       scale.tare();
     }
-
+      
     if (digitalRead(WIFI_PIN) == HIGH) {
       //hum = 2;
       lcd.clear();
@@ -785,7 +788,7 @@ void esperaEnvio() {
       return;
     }
 
-
+*/
     lcd.setCursor(0, 0);
     lcd.print("ID=");
     lcd.setCursor(4, 0);
