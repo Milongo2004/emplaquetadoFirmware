@@ -2,12 +2,24 @@
   Fecha de creación: 31 DE ENERO DE 2023
   por: Juan Camilo Alvarez Jaramillo
 
-  lee ambos, tag y teclado.
+  lee ambos, tag y teclado, el teclado es lento. borra con *
   entrega a la estación de almacén granel
-  no tara
-  //el objetivo de la presente modificación es que tare al presionar el botón 39
-  1. identifico si está leyendo el botón. ya he verficado físicamente que el boton está bueno.
+  tara bien. 
+  pendiente: que si oprime el envío, envíe a base de datos y al regresar conserve el id
+  en pantalla y para otro envío. 
 
+  si presiona la letra D, empieza a medir peso y espera envío.
+
+  cuando no ha presionado la D no es necesario que mida peso, mas sí que muestre cantidad de cajas de esa referencia.
+
+   registro como constante un arreglo con los id  y los nombres de las emplaquetadoras. 
+
+   el primer paso despues de conectar WiFi es solicitar la identificación. 
+
+   activo un leerTagPersona, donde leo el dato completo el cual será 
+   unos dígitos-Id p ejemplo: CL-02, Luego separo el string y con el dato del id
+   consulto el nombre de la persona y saludo en pantalla: nombre+bienvenid@
+  
 */
 
 //#include <EEPROM.h>//https://github.com/espressif/arduino-esp32/tree/master/libraries/EEPROM
@@ -752,11 +764,14 @@ void esperaEnvio() {
 
 
   while (cuentaEnvio == 0) {
+
+    /*
     lcd.setCursor(0, 1);
     //lcd.print(scale.get_units(), 0);
     masa = String(scale.get_units(), 0);
     temp = String(masa).toInt();
     lcd.print("   " + (String(scale.get_units(), 0)) + " gramos    ");
+    */
     //      Serial.print(" gramos"); //Change this to kg and re-adjust the calibration factor if you follow SI units like a sane person
     //      Serial.print(" calibration_factor: ");
     //      Serial.print(calibration_factor);
