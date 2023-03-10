@@ -12,12 +12,13 @@
 
   cuando no ha presionado la D no es necesario que mida peso, mas sí que muestre cantidad de cajas de esa referencia.
 
-   registro como constante un arreglo con los id  y los nombres de las emplaquetadoras.
+   cuando inicia, conecta Wifi y luego inmediatamente consulta los nombres de los emplaquetadores
+   a los cuales se puede acceder después con la variable respuesta 9. pendiente borrar
+   porción en enviarDAtos donde aparece la variabla para que no se modifique.
 
    el primer paso despues de conectar WiFi es solicitar la identificación.
 
-   activo un leerTagPersona, donde leo el dato completo el cual será
-   unos dígitos-Id p ejemplo: CL-02, Luego separo el string y con el dato del id
+
    consulto el nombre de la persona y saludo en pantalla: nombre+bienvenid@
 
 */
@@ -174,11 +175,14 @@ byte casilla = 0;
 
 String distancia = "";
 String rotulo = "";
+String idEmplaquetador = "";
 int claseTag = 0; //1=molde, 2=rotulo.
 
 int descontados = 0;
 int salida = 0;
 int asignados = 0;
+
+byte idNombre = 0;
 
 
 
@@ -264,10 +268,7 @@ void setup() {
   lcd.init();
   lcd.backlight();
 
-  lcd.setCursor(0, 0);
-  lcd.print("¡Bienvenido!");
-  delay(1500);
-  lcd.clear();
+
 
   //  //Init EEPROM
   //  EEPROM.begin(EEPROM_SIZE);
@@ -308,7 +309,7 @@ void setup() {
   Serial.println("WiFi connected");
   lcd.setCursor(0, 0);
   lcd.print("WiFi conectado");
-  
+
 
 
   //Serial.println("IP address: ");
@@ -340,15 +341,15 @@ void setup() {
   consultarNombres();
 
 
-  
 
-for (byte i = 0; i <50; i++) {
 
-Serial.print(i+1);
-Serial.print("=");
-Serial.println(separar.separa(respuesta9, '*', i));
+  for (byte i = 0; i < 50; i++) {
 
-}
+    Serial.print(i + 1);
+    Serial.print("=");
+    Serial.println(separar.separa(respuesta9, '*', i));
+
+  }
 
 
 }
@@ -357,8 +358,9 @@ Serial.println(separar.separa(respuesta9, '*', i));
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void loop() {
+  leerIdNombre();
   //revisarWiFi();
-  esperaEnvio();
+  //esperaEnvio();
   //leerTag();
 
 
@@ -693,8 +695,8 @@ void consultarNombres() {
     client.println("Connection: close");
     client.println();
     Serial.println("Envio con exito (al archivo controller/index y models/herramienta)");
-    lcd.setCursor(0, 0);
-    lcd.print("Envio Exitoso");
+    //lcd.setCursor(0, 0);
+    //lcd.print("Envio Exitoso");
 
     //"https://esp32sensoresiot.000webhostapp.com/control/conexion_arduino.php?pre_php=10.2&hum_php=20.3&temp_php=30.1&dist_php=cerca" 7/usar en postman.com
   }
@@ -717,20 +719,28 @@ void consultarNombres() {
     Serial.println(line);
     //if (line.length() < 250) {
     num_molde = separar.separa(line, ',', num_respuesta);
-  
+
     respuesta = cant_moldes;
     Serial.println("codigo obtenido");
     Serial.println(num_molde);
-  
+
   }
 
   //memset(buffer, 0, sizeof(buffer));
   memset(dataChar, 0, sizeof(dataChar));//vacío el dataChar
 
- 
-    respuesta9 = num_molde;
-    Serial.println(respuesta9);
+
+  respuesta9 = num_molde;
   
+  Serial.println(respuesta9);
+
+  if (respuesta9!=""){
+    lcd.setCursor(0, 0);
+    lcd.print("Identifiquese!");
+  }
+  else {
+    ESP.restart();
+  }
   //memcpy(buffer, dataChar, 16); //guarda en el buffer el dato en arreglo. hacer esto cuando le presiono la b.
   Serial.println("wait 5 sec...");
   delay(500);//remplazar por el if de arriba.
@@ -910,3 +920,122 @@ void esperaEnvio() {
   }
 }
 ////////////////////////////////////////////
+
+void leerIdNombre() {
+  //
+  //
+
+  int lectura = 0;
+
+  String datoTag;
+
+
+  //si no hay un tag presente no haga nada.
+  while (lectura == 0) {
+    size = sizeof(buffer);
+
+
+
+    if ( mfrc522.PICC_IsNewCardPresent())
+    {
+      if ( mfrc522.PICC_ReadCardSerial())
+      {
+        //break;
+
+
+        //a continuación se ejecuta leer
+        // Read data ***************************************************
+        Serial.println(F("leyendo datos ... "));
+        //data in 4 block is readed at once.
+        status = (MFRC522::StatusCode) mfrc522.MIFARE_Read(pageAddr, buffer, &size);
+        if (status != MFRC522::STATUS_OK) {
+          Serial.print(F("MIFARE_Read() failed: "));
+          Serial.println(mfrc522.GetStatusCodeName(status));
+          return;
+        }
+        lcd.clear();
+        Serial.print(F("Dato leído: "));
+        //cuentaLecturas += 1;
+        //lcd.setCursor(0, 0);
+        //lcd.print("Dato leido: ");
+        //Dump a byte array to Serial
+        for (byte i = 0; i < 10; i++) {
+          Serial.write(buffer[i]);
+          dataChar[i] = buffer[i];
+          //codigoRFID+=String(char(buffer[i]));
+          if (dataChar[i] != '\n') {//utilizo el \n para no rellenar el dato con el signo parecido a la E con ' ' se rellena
+            //lcd.setCursor(i, 1);
+            //lcd.print(dataChar[i]);
+          }
+
+          buffer[i] = ' ';
+
+
+        }
+
+        Serial.println();
+        Serial.println("FIN DE LA LECTURA");
+
+        digitalWrite(ledPin, HIGH);
+        delay(700);
+        digitalWrite(ledPin, LOW);
+        lcd.clear();
+
+        mfrc522.PICC_HaltA();//cierra la comunicación con el lector.
+        mfrc522.PCD_StopCrypto1();//tomado del unificado de tarjeta común con 2 bloques.
+
+        datoTag = String(dataChar);
+        Serial.print("valor de datoTag=");
+        Serial.println(datoTag);
+
+
+        //después de que datoTag toma el valor de dataChar, vacío dataChar para que no conserve datos viejos
+
+        for (byte i = 0; i < 10; i++) {
+          dataChar[i] = '\0';
+        }
+
+        Serial.print("valor de datoTag=");
+        Serial.println(datoTag);
+
+
+
+        idEmplaquetador = datoTag;
+
+
+        Serial.print("valor de la variable id emplaquetador despues de la funcion char array to string = ");
+        Serial.println (idEmplaquetador);
+
+        lectura = 1;
+
+      }
+
+    }
+    else {
+
+      revisarWiFi();
+
+      if (digitalRead(WIFI_PIN) == HIGH) {
+        //hum = 2;
+        idEmplaquetador = "0";
+        lectura = 1;
+        lcd.clear();
+
+      }
+
+
+
+    }
+  }//cieerre de while no hay lectura
+
+  idNombre = String(idEmplaquetador).toInt();
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("¡Bienvenid@!");
+  lcd.setCursor(0, 1);
+  lcd.print(separar.separa(respuesta9, '*', idNombre-1));
+  delay(1500);
+  lcd.clear();
+
+
+}
