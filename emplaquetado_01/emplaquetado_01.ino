@@ -4,22 +4,22 @@
 
   lee ambos, tag y teclado, el teclado es lento. borra con *
   entrega a la estación de almacén granel
-  tara bien. 
+  tara bien.
   pendiente: que si oprime el envío, envíe a base de datos y al regresar conserve el id
-  en pantalla y para otro envío. 
+  en pantalla y para otro envío.
 
   si presiona la letra D, empieza a medir peso y espera envío.
 
   cuando no ha presionado la D no es necesario que mida peso, mas sí que muestre cantidad de cajas de esa referencia.
 
-   registro como constante un arreglo con los id  y los nombres de las emplaquetadoras. 
+   registro como constante un arreglo con los id  y los nombres de las emplaquetadoras.
 
-   el primer paso despues de conectar WiFi es solicitar la identificación. 
+   el primer paso despues de conectar WiFi es solicitar la identificación.
 
-   activo un leerTagPersona, donde leo el dato completo el cual será 
+   activo un leerTagPersona, donde leo el dato completo el cual será
    unos dígitos-Id p ejemplo: CL-02, Luego separo el string y con el dato del id
    consulto el nombre de la persona y saludo en pantalla: nombre+bienvenid@
-  
+
 */
 
 //#include <EEPROM.h>//https://github.com/espressif/arduino-esp32/tree/master/libraries/EEPROM
@@ -187,8 +187,11 @@ const byte pulsadorIzquierda = 39;
 
 WiFiClient client;
 
-int num_respuesta = 4;
-int num_respuesta2 = 3;
+//int num_respuesta = 4;
+//int num_respuesta2 = 3;
+
+int num_respuesta = 1;
+int num_respuesta2 = 4;
 
 String respuesta9 = "";
 String respId = "";
@@ -305,7 +308,7 @@ void setup() {
   Serial.println("WiFi connected");
   lcd.setCursor(0, 0);
   lcd.print("WiFi conectado");
-
+  
 
 
   //Serial.println("IP address: ");
@@ -313,6 +316,8 @@ void setup() {
 
 
   strhost.toCharArray(host, 49);
+
+
 
   for (int i = 0; i < 17; i = i + 8) {
     chipID |= ((ESP.getEfuseMac() >> (40 - i)) & 0xff) << i;
@@ -330,6 +335,20 @@ void setup() {
   memcpy(buffer, " ", 16);
   bool status;
 
+
+  proceso = 14;
+  consultarNombres();
+
+
+  
+
+for (byte i = 0; i <50; i++) {
+
+Serial.print(i+1);
+Serial.print("=");
+Serial.println(separar.separa(respuesta9, '*', i));
+
+}
 
 
 }
@@ -630,6 +649,7 @@ void enviarDatos() {
   }
   else {
     respuesta9 = num_molde;
+    Serial.println(respuesta9);
   }
   //memcpy(buffer, dataChar, 16); //guarda en el buffer el dato en arreglo. hacer esto cuando le presiono la b.
   Serial.println("wait 5 sec...");
@@ -643,6 +663,84 @@ void enviarDatos() {
 ////////////////////////////////////////////////////////////////////////////////////
 
 
+void consultarNombres() {
+  unsigned long timecontrol = millis();
+  unsigned long deltatime = timecontrol - nowtime;
+  //if (deltatime >= 5000)
+  //{
+  Serial.print("connecting to ");
+  Serial.println(host);
+
+  if (client.connect(host, 80)) {
+    Serial.println("connected to server");
+
+    //client.print("GET https://esp32sensoresiot.000webhostapp.com/control/conexion_arduino.php?pre_php="); // Enviamos los datos por GET
+    client.print("GET https://trazabilidadmasterdent.online/control/interaccion_arduino.php?pre_php="); // Enviamos los datos por GET
+    client.print(P, DEC);
+    client.print("&hum_php=");
+    client.print(hum, 2);
+    client.print("&temp_php=");
+    client.print(temp, DEC);
+    client.print("&proceso_php=");
+    client.print(proceso, DEC);
+    client.print("&dist_php=");
+    client.print(distancia);
+    client.print("&rotulo_php=");
+    client.print(rotulo);
+    client.println(" HTTP/1.0");
+    //client.println("Host: esp32sensoresiot.000webhostapp.com");
+    client.println("Host: trazabilidadmasterdent.online");
+    client.println("Connection: close");
+    client.println();
+    Serial.println("Envio con exito (al archivo controller/index y models/herramienta)");
+    lcd.setCursor(0, 0);
+    lcd.print("Envio Exitoso");
+
+    //"https://esp32sensoresiot.000webhostapp.com/control/conexion_arduino.php?pre_php=10.2&hum_php=20.3&temp_php=30.1&dist_php=cerca" 7/usar en postman.com
+  }
+
+  Serial.println("% send to Server");
+
+  unsigned long timeout = millis();
+  while (client.available() == 0) {
+    if (millis() - timeout > 7000) {
+      Serial.println(">>> Client Timeout !");
+      ESP.restart();
+      client.stop();
+      client.flush();
+      return;
+    }
+  }
+  // Read all the lines of the reply from server and print them to Serial
+  while (client.available()) {
+    String line = client.readStringUntil('\r');
+    Serial.println(line);
+    //if (line.length() < 250) {
+    num_molde = separar.separa(line, ',', num_respuesta);
+  
+    respuesta = cant_moldes;
+    Serial.println("codigo obtenido");
+    Serial.println(num_molde);
+  
+  }
+
+  //memset(buffer, 0, sizeof(buffer));
+  memset(dataChar, 0, sizeof(dataChar));//vacío el dataChar
+
+ 
+    respuesta9 = num_molde;
+    Serial.println(respuesta9);
+  
+  //memcpy(buffer, dataChar, 16); //guarda en el buffer el dato en arreglo. hacer esto cuando le presiono la b.
+  Serial.println("wait 5 sec...");
+  delay(500);//remplazar por el if de arriba.
+  //distancia = "";
+  //rotulo="";
+  nowtime = timecontrol;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////
 
 //******************************************************************
 
@@ -766,11 +864,11 @@ void esperaEnvio() {
   while (cuentaEnvio == 0) {
 
     /*
-    lcd.setCursor(0, 1);
-    //lcd.print(scale.get_units(), 0);
-    masa = String(scale.get_units(), 0);
-    temp = String(masa).toInt();
-    lcd.print("   " + (String(scale.get_units(), 0)) + " gramos    ");
+      lcd.setCursor(0, 1);
+      //lcd.print(scale.get_units(), 0);
+      masa = String(scale.get_units(), 0);
+      temp = String(masa).toInt();
+      lcd.print("   " + (String(scale.get_units(), 0)) + " gramos    ");
     */
     //      Serial.print(" gramos"); //Change this to kg and re-adjust the calibration factor if you follow SI units like a sane person
     //      Serial.print(" calibration_factor: ");
@@ -781,11 +879,11 @@ void esperaEnvio() {
     //      Serial.print(masa);
     //      Serial.println();
     /*
-    if (digitalRead(tareButton) == HIGH) {
+      if (digitalRead(tareButton) == HIGH) {
       scale.tare();
-    }
-      
-    if (digitalRead(WIFI_PIN) == HIGH) {
+      }
+
+      if (digitalRead(WIFI_PIN) == HIGH) {
       //hum = 2;
       lcd.clear();
       lcd.setCursor(0, 0);
@@ -801,9 +899,9 @@ void esperaEnvio() {
       temp = String(masa).toInt();
       enviarDatos();
       return;
-    }
+      }
 
-*/
+    */
     lcd.setCursor(0, 0);
     lcd.print("ID=");
     lcd.setCursor(4, 0);
