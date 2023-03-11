@@ -40,7 +40,6 @@ String masa;
 
 #define WIFI_PIN 35
 
-
 //incluyo librerías Y defino variables para el control del RFID
 #include <SPI.h>
 #include <MFRC522.h>
@@ -276,6 +275,9 @@ void setup() {
   //
   //  conectarWifi();
 
+
+//fragmento de código para calibración de báscula
+
   Serial.println("HX711 calibration sketch");
   Serial.println("Remove all weight from scale");
   Serial.println("After readings begin, place known weight on scale");
@@ -291,6 +293,7 @@ void setup() {
   long zero_factor = scale.read_average(); //Get a baseline reading
   Serial.print("Zero factor: "); //This can be used to remove the need to tare the scale. Useful in permanent scale projects.
   Serial.println(zero_factor);
+
 
   initWiFi();
 
@@ -342,7 +345,8 @@ void setup() {
 
 
 
-
+//ciclo para listar en el monitor Serial el nombre de los Trabajadores. 
+/*
   for (byte i = 0; i < 50; i++) {
 
     Serial.print(i + 1);
@@ -350,7 +354,10 @@ void setup() {
     Serial.println(separar.separa(respuesta9, '*', i));
 
   }
+*/
 
+
+leerIdNombre();
 
 }
 
@@ -358,9 +365,9 @@ void setup() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void loop() {
-  leerIdNombre();
+  
   //revisarWiFi();
-  //esperaEnvio();
+  esperaEnvio();
   //leerTag();
 
 
@@ -376,7 +383,8 @@ void leerTag() {
 
   int lectura = 0;
   salida = 0;
-  String datoTag;
+  //String datoTag;
+  datoTag = "";
   cuentaEnvio = 0;//****************************
   char tecla;
   //si no hay un tag presente no haga nada.
@@ -445,7 +453,6 @@ void leerTag() {
         Serial.print("valor de datoTag=");
         Serial.println(datoTag);
 
-
         //después de que datoTag toma el valor de dataChar, vacío dataChar para que no conserve datos viejos
 
         for (byte i = 0; i < 10; i++) {
@@ -455,10 +462,7 @@ void leerTag() {
         Serial.print("valor de datoTag=");
         Serial.println(datoTag);
 
-
-
         rotulo = datoTag;
-
 
         Serial.print("valor de la variable rotulo despues de la funcion char array to string = ");
         Serial.println (rotulo);
@@ -527,13 +531,6 @@ void leerTag() {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void enviarDatos() {
   unsigned long timecontrol = millis();
   unsigned long deltatime = timecontrol - nowtime;
@@ -595,7 +592,6 @@ void enviarDatos() {
     Serial.println("cantidad de moldes a asignar");
     Serial.println(cant_moldes);
 
-
     if (num_molde == "rotuloOK,") {
 
       lcd.clear();
@@ -618,7 +614,6 @@ void enviarDatos() {
       digitalWrite(ledPin, HIGH);
       delay(150);
       digitalWrite(ledPin, LOW);
-
 
     }
     else {
@@ -731,10 +726,10 @@ void consultarNombres() {
 
 
   respuesta9 = num_molde;
-  
+
   Serial.println(respuesta9);
 
-  if (respuesta9!=""){
+  if (respuesta9 != "") {
     lcd.setCursor(0, 0);
     lcd.print("Identifiquese!");
   }
@@ -749,17 +744,7 @@ void consultarNombres() {
   nowtime = timecontrol;
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////////
-
-//******************************************************************
-
-////////////////////////////////////////////////////////////////
-
-//***************************************************************
-//*******************************************************************+
-
-///////////////////
 
 void revisarWiFi() {
   int j = 0;
@@ -798,15 +783,10 @@ void revisarWiFi() {
   }
 }
 
-//**********************************************************************
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void leerTeclado() {
   char tecla ;
-
-
 
   tecla  = teclado.getKey();
   if (tecla != NO_KEY) {
@@ -826,7 +806,7 @@ void leerTeclado() {
     }
     else if (tecla == '#') {
       //aquí guardo el string en un rótulo,
-
+      idEmplaquetador= datoTag;
       rotulo = datoTag;
       cuentaLecturas += 1;
       contadorTeclado = 0;
@@ -873,13 +853,7 @@ void esperaEnvio() {
 
   while (cuentaEnvio == 0) {
 
-    /*
-      lcd.setCursor(0, 1);
-      //lcd.print(scale.get_units(), 0);
-      masa = String(scale.get_units(), 0);
-      temp = String(masa).toInt();
-      lcd.print("   " + (String(scale.get_units(), 0)) + " gramos    ");
-    */
+
     //      Serial.print(" gramos"); //Change this to kg and re-adjust the calibration factor if you follow SI units like a sane person
     //      Serial.print(" calibration_factor: ");
     //      Serial.print(calibration_factor);
@@ -888,30 +862,7 @@ void esperaEnvio() {
     //      Serial.print(" Variable masa: ");
     //      Serial.print(masa);
     //      Serial.println();
-    /*
-      if (digitalRead(tareButton) == HIGH) {
-      scale.tare();
-      }
 
-      if (digitalRead(WIFI_PIN) == HIGH) {
-      //hum = 2;
-      lcd.clear();
-      lcd.setCursor(0, 0);
-      lcd.print("Enviando:");
-      //lcd.setCursor(0, 1);
-      //lcd.print("-->Acabado");
-      cuentaEnvio++;
-      digitalWrite(ledPin, HIGH);
-      delay(700);
-      digitalWrite(ledPin, LOW);
-      contadorTeclado = 0;
-      idProduccionString = "";
-      temp = String(masa).toInt();
-      enviarDatos();
-      return;
-      }
-
-    */
     lcd.setCursor(0, 0);
     lcd.print("ID=");
     lcd.setCursor(4, 0);
@@ -927,21 +878,17 @@ void leerIdNombre() {
 
   int lectura = 0;
 
-  String datoTag;
-
+  //String datoTag;
+  datoTag = "";
 
   //si no hay un tag presente no haga nada.
   while (lectura == 0) {
     size = sizeof(buffer);
 
-
-
     if ( mfrc522.PICC_IsNewCardPresent())
     {
       if ( mfrc522.PICC_ReadCardSerial())
       {
-        //break;
-
 
         //a continuación se ejecuta leer
         // Read data ***************************************************
@@ -955,21 +902,16 @@ void leerIdNombre() {
         }
         lcd.clear();
         Serial.print(F("Dato leído: "));
-        //cuentaLecturas += 1;
-        //lcd.setCursor(0, 0);
-        //lcd.print("Dato leido: ");
-        //Dump a byte array to Serial
+
         for (byte i = 0; i < 10; i++) {
           Serial.write(buffer[i]);
           dataChar[i] = buffer[i];
           //codigoRFID+=String(char(buffer[i]));
           if (dataChar[i] != '\n') {//utilizo el \n para no rellenar el dato con el signo parecido a la E con ' ' se rellena
-            //lcd.setCursor(i, 1);
-            //lcd.print(dataChar[i]);
+
           }
 
           buffer[i] = ' ';
-
 
         }
 
@@ -1012,17 +954,17 @@ void leerIdNombre() {
 
     }
     else {
+      idEmplaquetador="";
+      leerTeclado();
+      if (idEmplaquetador!="") {
 
-      revisarWiFi();
-
-      if (digitalRead(WIFI_PIN) == HIGH) {
-        //hum = 2;
-        idEmplaquetador = "0";
         lectura = 1;
-        lcd.clear();
+      }
+      else {
 
       }
 
+      revisarWiFi();
 
 
     }
@@ -1033,7 +975,13 @@ void leerIdNombre() {
   lcd.setCursor(0, 0);
   lcd.print("¡Bienvenid@!");
   lcd.setCursor(0, 1);
-  lcd.print(separar.separa(respuesta9, '*', idNombre-1));
+  if (idNombre == 0) {
+
+  }
+  else {
+    lcd.print(separar.separa(respuesta9, '*', idNombre - 1));
+  }
+
   delay(1500);
   lcd.clear();
 
