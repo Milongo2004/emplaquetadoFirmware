@@ -276,7 +276,7 @@ void setup() {
   //  conectarWifi();
 
 
-//fragmento de código para calibración de báscula
+  //fragmento de código para calibración de báscula
 
   Serial.println("HX711 calibration sketch");
   Serial.println("Remove all weight from scale");
@@ -345,19 +345,19 @@ void setup() {
 
 
 
-//ciclo para listar en el monitor Serial el nombre de los Trabajadores. 
-/*
-  for (byte i = 0; i < 50; i++) {
+  //ciclo para listar en el monitor Serial el nombre de los Trabajadores.
+  /*
+    for (byte i = 0; i < 50; i++) {
 
-    Serial.print(i + 1);
-    Serial.print("=");
-    Serial.println(separar.separa(respuesta9, '*', i));
+      Serial.print(i + 1);
+      Serial.print("=");
+      Serial.println(separar.separa(respuesta9, '*', i));
 
-  }
-*/
+    }
+  */
 
 
-leerIdNombre();
+  leerIdNombre();
 
 }
 
@@ -365,7 +365,7 @@ leerIdNombre();
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void loop() {
-  
+
   //revisarWiFi();
   esperaEnvio();
   //leerTag();
@@ -394,11 +394,19 @@ void leerTag() {
     leerTeclado();
     tecla  = teclado.getKey();
     if (tecla != NO_KEY) {
-      if (tecla == '*') {
+      if (tecla == 'D') {//cambio la tecla de salida a D(close)/ reservo la C para reportar calidad
         lectura++;
         cuentaEnvio++;
         salida++;
+        leerMasa();
       }
+      /*
+       * en el momento no considero necesario activar la lectura de masa 
+       * con otra tecla distinta a la de salir de la lectura
+      else if (tecla == 'C') {
+        leerMasa();
+      }
+      */
     }
 
     if ( mfrc522.PICC_IsNewCardPresent())
@@ -475,9 +483,11 @@ void leerTag() {
     else {
 
       revisarWiFi();
-      if (digitalRead(tareButton) == HIGH) {
+      /*
+        if (digitalRead(tareButton) == HIGH) {
         scale.tare();
-      }
+        }
+      */
       if (digitalRead(WIFI_PIN) == HIGH) {
         //hum = 2;
         lcd.clear();
@@ -491,43 +501,28 @@ void leerTag() {
         digitalWrite(ledPin, LOW);
         Serial.print("rótulos enviados");
         Serial.println(rotulo);
-        Serial.print("cantidad de rótulos = ");
-        Serial.println(cuentaLecturas);
+        proceso = 15;
+        distancia=idNombre;
         enviarDatos();
         lcd.clear();
-        //presentarOpcionesSubmenuB();
-        //seleccionarOpcionesSubmenuB();
-        //return;
+
       }
+      /*
+            Serial.print("Reading: ");
+            Serial.println(scale.get_units(), 0);
+            //lcd.clear();
 
-      Serial.print("Reading: ");
-      Serial.println(scale.get_units(), 0);
-      //lcd.clear();
+            lcd.setCursor(0, 1);
+            //lcd.print(scale.get_units(), 0);
+            masa = String(scale.get_units(), 0);
 
-      lcd.setCursor(0, 1);
-      //lcd.print(scale.get_units(), 0);
-      masa = String(scale.get_units(), 0);
-
-      lcd.print("   " + (String(scale.get_units(), 0)) + " gramos    ");
-      //      Serial.print(" gramos"); //Change this to kg and re-adjust the calibration factor if you follow SI units like a sane person
-      //      Serial.print(" calibration_factor: ");
-      //      Serial.print(calibration_factor);
-      //      Serial.print(" Dato RFID");
-      //      Serial.print(datoTag);
-      //      Serial.print(" Variable masa: ");
-      //      Serial.print(masa);
-      //      Serial.println();
-
-
-      //lcd.clear();
-      //return;
-
+            lcd.print("   " + (String(scale.get_units(), 0)) + " gramos    ");
+      */
 
 
     }
   }//cieerre de while no hay lectura
-  //enviarDatos();
-  //return datoTag;
+
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -589,8 +584,8 @@ void enviarDatos() {
     respuesta = cant_moldes;
     Serial.println("codigo obtenido");
     Serial.println(num_molde);
-    Serial.println("cantidad de moldes a asignar");
-    Serial.println(cant_moldes);
+    //Serial.println("cantidad de moldes a asignar");
+    //Serial.println(cant_moldes);
 
     if (num_molde == "rotuloOK,") {
 
@@ -806,7 +801,7 @@ void leerTeclado() {
     }
     else if (tecla == '#') {
       //aquí guardo el string en un rótulo,
-      idEmplaquetador= datoTag;
+      idEmplaquetador = datoTag;
       rotulo = datoTag;
       cuentaLecturas += 1;
       contadorTeclado = 0;
@@ -864,8 +859,8 @@ void esperaEnvio() {
     //      Serial.println();
 
     lcd.setCursor(0, 0);
-    lcd.print("ID=");
-    lcd.setCursor(4, 0);
+    lcd.print("Rotulo=");
+    lcd.setCursor(7, 0);
     lcd.print(rotulo);
     leerTag();
   }
@@ -954,9 +949,9 @@ void leerIdNombre() {
 
     }
     else {
-      idEmplaquetador="";
+      idEmplaquetador = "";
       leerTeclado();
-      if (idEmplaquetador!="") {
+      if (idEmplaquetador != "") {
 
         lectura = 1;
       }
@@ -986,4 +981,18 @@ void leerIdNombre() {
   lcd.clear();
 
 
+}
+
+/////////////////////////////////////////////////////77
+
+void leerMasa() {
+  Serial.print("Reading: ");
+  Serial.println(scale.get_units(), 0);
+  //lcd.clear();
+
+  lcd.setCursor(0, 1);
+  //lcd.print(scale.get_units(), 0);
+  masa = String(scale.get_units(), 0);
+
+  lcd.print("   " + (String(scale.get_units(), 0)) + " gramos    ");
 }
