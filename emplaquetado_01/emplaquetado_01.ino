@@ -31,7 +31,7 @@
 #define LOADCELL_SCK_PIN  17
 
 HX711 scale;
-float calibration_factor = -299; //-7050 worked for my 440lb max scale setup
+float calibration_factor = -266; //-7050 worked for my 440lb max scale setup
 
 #define tareButton 39
 String masa;
