@@ -153,7 +153,7 @@ char host[48];
 int err;
 int temp = 0;
 float tempFloat;
-float hum = 7;//este es el dato correspondiente a la estacion en la tabla3 del Webhost
+float hum = 6;//este es el dato correspondiente a la estacion en la tabla3 del Webhost
 String datos = "";
 uint32_t chipID = 0;
 String chipid = "";
@@ -168,7 +168,7 @@ char str_final[16];
 char str_code[8];//es posible que este dato no sea necesario con lectura real de RFID tag
 unsigned long lastTime = 0;
 
-byte proceso = 13; //proceso correspondiente a la actualización de la estación en la tabla rotulos2
+byte proceso = 0; //proceso correspondiente a la actualización de la estación en la tabla rotulos2
 int idMolde = 0;
 byte casilla = 0;
 
@@ -193,8 +193,8 @@ WiFiClient client;
 //int num_respuesta = 4;
 //int num_respuesta2 = 3;
 
-int num_respuesta = 1;
-int num_respuesta2 = 4;
+int num_respuesta = 2;
+int num_respuesta2 = 1;
 
 String respuesta9 = "";
 String respId = "";
@@ -434,7 +434,7 @@ void leerTag() {
         }
         lcd.clear();
         Serial.print(F("Dato leído: "));
-        //cuentaLecturas += 1;
+        cuentaLecturas = 1;
         lcd.setCursor(0, 0);
         lcd.print("Dato leido: ");
         //Dump a byte array to Serial
@@ -507,7 +507,7 @@ void leerTag() {
         digitalWrite(ledPin, LOW);
         Serial.print("rótulos enviados");
         Serial.println(rotulo);
-        proceso = 15;
+        proceso = 8;
         distancia = idNombre;
         enviarDatos();
         //lcd.clear();
@@ -553,6 +553,8 @@ void enviarDatos() {
     client.print(temp, DEC);
     client.print("&proceso_php=");
     client.print(proceso, DEC);
+    client.print("&cuentaLecturas_php=");
+    client.print(cuentaLecturas, DEC);
     client.print("&dist_php=");
     client.print(distancia);
     client.print("&rotulo_php=");
@@ -594,8 +596,8 @@ void enviarDatos() {
     //Serial.println("cantidad de moldes a asignar");
     //Serial.println(cant_moldes);
 
-    if (num_molde == "rotuloOK,") {
-
+    if (cant_moldes == "rotuloOK") {
+      temp = 0;
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Respuesta=");
@@ -716,7 +718,7 @@ void consultarNombres() {
     String line = client.readStringUntil('\r');
     Serial.println(line);
     //if (line.length() < 250) {
-    num_molde = separar.separa(line, ',', num_respuesta);
+    num_molde = separar.separa(line, ',', num_respuesta2);
 
     respuesta = cant_moldes;
     Serial.println("codigo obtenido");
@@ -819,7 +821,7 @@ void leerTeclado() {
       //aquí guardo el string en un rótulo,
       idEmplaquetador = datoTag;//tiene significado en la función de leerNombres
       rotulo = datoTag;
-      cuentaLecturas += 1;
+      cuentaLecturas = 1;
       contadorTeclado = 0;
       idProduccionString = "";
 
@@ -831,7 +833,7 @@ void leerTeclado() {
     }
     else if (tecla == 'D') {
       //rotulo = datoTag;
-      //cuentaLecturas += 1;
+      cuentaLecturas = 1;
       contadorTeclado = 0;
       //idProduccionString = "";
       leerMasa();
@@ -978,7 +980,8 @@ void leerIdNombre() {
       idEmplaquetador = "";
       leerTeclado();
       if (idEmplaquetador != "") {
-
+        cuentaLecturas = 0;
+        rotulo = "";
         lectura = 1;
       }
       else {
