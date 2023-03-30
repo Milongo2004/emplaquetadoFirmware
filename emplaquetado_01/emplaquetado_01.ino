@@ -81,6 +81,8 @@ uint8_t pageAddr = 0x06;  //In this example we will write/read 16 bytes (page 6,
 String num_molde;
 String cant_moldes;
 String respuesta;
+String faltan;
+String juegosParaRestar;
 unsigned long nowtime = 0;
 
 ////incluyo librerías Y defino variables para el control del teclado
@@ -162,7 +164,7 @@ float datahum = 42;
 int ID = 1001;
 String datagps = "6.169252;-75.590535";
 String prueba = "prueba1001";
-int P = 0;//variable presion
+String P;//variable juegos de mala calidad
 char str_val[6];
 char str_final[16];
 char str_code[8];//es posible que este dato no sea necesario con lectura real de RFID tag
@@ -193,8 +195,8 @@ WiFiClient client;
 //int num_respuesta = 4;
 //int num_respuesta2 = 3;
 
-int num_respuesta = 2;
-int num_respuesta2 = 1;
+int num_respuesta = 1;
+int num_respuesta2 = 4;
 
 String respuesta9 = "";
 String respId = "";
@@ -482,6 +484,7 @@ void leerTag() {
         Serial.println (rotulo);
 
         lectura = 1;
+        faltan = "";
 
       }
 
@@ -546,7 +549,7 @@ void enviarDatos() {
 
     //client.print("GET https://esp32sensoresiot.000webhostapp.com/control/conexion_arduino.php?pre_php="); // Enviamos los datos por GET
     client.print("GET https://trazabilidadmasterdent.online/control/interaccion_arduino.php?pre_php="); // Enviamos los datos por GET
-    client.print(P, DEC);
+    client.print(P);
     client.print("&hum_php=");
     client.print(hum, 2);
     client.print("&temp_php=");
@@ -588,15 +591,15 @@ void enviarDatos() {
     String line = client.readStringUntil('\r');
     Serial.println(line);
     //if (line.length() < 250) {
-    num_molde = separar.separa(line, ',', num_respuesta);
-    cant_moldes = separar.separa(line, ',', num_respuesta2);
+    num_molde = separar.separa(line, ',', num_respuesta);//1
+    cant_moldes = separar.separa(line, ',', num_respuesta2);//4
     respuesta = cant_moldes;
     Serial.println("codigo obtenido");
     Serial.println(num_molde);
     //Serial.println("cantidad de moldes a asignar");
     //Serial.println(cant_moldes);
 
-    if (cant_moldes == "rotuloOK") {
+    if (cant_moldes == "rotuloOK,") {
       temp = 0;
       lcd.clear();
       lcd.setCursor(0, 0);
@@ -644,6 +647,7 @@ void enviarDatos() {
   memset(dataChar, 0, sizeof(dataChar));//vacío el dataChar
 
   if (num_molde.length() <= 10) { //si el dato recibido en la respuesta es de molde o rótulo lo guardo en dataChar.
+    faltan = num_molde;
     num_molde.toCharArray(dataChar, 18);
     Serial.println("longitud de num_molde menor a 10");
     Serial.println("dato num_molde guardado en dataChar");
@@ -678,7 +682,7 @@ void consultarNombres() {
 
     //client.print("GET https://esp32sensoresiot.000webhostapp.com/control/conexion_arduino.php?pre_php="); // Enviamos los datos por GET
     client.print("GET https://trazabilidadmasterdent.online/control/interaccion_arduino.php?pre_php="); // Enviamos los datos por GET
-    client.print(P, DEC);
+    client.print(P);
     client.print("&hum_php=");
     client.print(hum, 2);
     client.print("&temp_php=");
@@ -718,7 +722,7 @@ void consultarNombres() {
     String line = client.readStringUntil('\r');
     Serial.println(line);
     //if (line.length() < 250) {
-    num_molde = separar.separa(line, ',', num_respuesta2);
+    num_molde = separar.separa(line, ',', num_respuesta);
 
     respuesta = cant_moldes;
     Serial.println("codigo obtenido");
@@ -824,6 +828,7 @@ void leerTeclado() {
       cuentaLecturas = 1;
       contadorTeclado = 0;
       idProduccionString = "";
+      faltan = "";
 
 
       lcd.setCursor(4, 0);
@@ -839,6 +844,20 @@ void leerTeclado() {
       leerMasa();
       //rotulo = "";
       lcd.clear();
+      //return;
+    }
+    else if (tecla == 'C') {
+      //rotulo = datoTag;
+      cuentaLecturas = 1;
+      contadorTeclado = 0;
+      //idProduccionString = "";
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Juegos=");
+      descuentaJuegosPorCalidad();
+      //rotulo = "";
+      
+
       //return;
     }
     else {
@@ -890,6 +909,11 @@ void esperaEnvio() {
     lcd.print("Rotulo=");
     lcd.setCursor(7, 0);
     lcd.print(rotulo);
+    if (faltan != "") {
+      lcd.setCursor(0, 1);
+      lcd.print("Faltan " + faltan + " cajas");
+    }
+
     leerTag();
   }
 }
@@ -1054,7 +1078,7 @@ void leerMasa() {
       digitalWrite(ledPin, LOW);
       Serial.print("rótulos enviados");
       Serial.println(rotulo);
-      proceso = 15;
+      proceso = 13;
       distancia = idNombre;
 
       enviarDatos();
@@ -1065,4 +1089,119 @@ void leerMasa() {
     }
 
   }
+}
+
+/////////////////////////////////////////////////////77
+
+void descuentaJuegosPorCalidad() {
+  //cuentaEnvio=0;
+  int lecturaJuegos = 0; //variable para indicar el envío de un peso a producto a granel
+  // se modifica al presionar botón de envío.
+
+  while (lecturaJuegos == 0) {
+
+
+    TecladoDescuentaJuegos();
+
+    if (digitalRead(WIFI_PIN) == HIGH) {
+      //hum = 2;
+      lecturaJuegos++;
+      salida++;
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Enviando:");
+      //lcd.setCursor(0, 1);
+      //lcd.print("-->Acabado");
+      //cuentaEnvio++;
+      digitalWrite(ledPin, HIGH);
+      delay(700);
+      digitalWrite(ledPin, LOW);
+      Serial.print("rótulos enviados");
+      Serial.println(rotulo);
+      proceso = 15;
+      P = juegosParaRestar;
+      distancia = idNombre;
+
+      enviarDatos();
+      //rotulo = "";
+      faltan = "";
+      juegosParaRestar="";
+      lcd.clear();
+      //return;
+
+    }
+
+  }
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void TecladoDescuentaJuegos() {
+  char tecla ;
+
+  tecla  = teclado.getKey();
+  if (tecla != NO_KEY) {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Juegos=");
+
+    if (tecla == '*') {
+
+      if (contadorTeclado > 0) {
+
+        contadorTeclado--;
+        int largoString;
+        largoString = idProduccionString.length();
+        idProduccionString.remove(largoString - 1);
+        lcd.setCursor(8, 0);
+        lcd.print(idProduccionString);
+        lcd.setCursor(contadorTeclado + 8 , 0);
+        lcd.print(" ");
+
+      }
+      else {
+
+      }
+    }
+    else if (tecla == '#') {
+      //aquí guardo el string en un rótulo,
+      juegosParaRestar = datoTag;//tiene significado en la función de leerNombres
+
+      cuentaLecturas = 1;
+      contadorTeclado = 0;
+      idProduccionString = "";
+      
+
+
+
+      lcd.setCursor(8, 0);
+      lcd.print(datoTag + "->OK");
+      Serial.print("Juegos de dientes a restar por mala calidad ");
+      Serial.println(juegosParaRestar);
+    }
+
+
+    else {
+      idProduccion[contadorTeclado] = tecla;
+      lcd.setCursor(8, 0);
+      lcd.print(idProduccionString);
+      lcd.setCursor(contadorTeclado + 8 , 0);
+      lcd.print(tecla);
+
+
+      if (contadorTeclado > 6) {
+        idProduccion [contadorTeclado] = '\0';
+      }
+
+      idProduccionString += idProduccion[contadorTeclado];
+      Serial.print ("idProduccionString");
+      Serial.print(" = ");
+      Serial.println (idProduccionString);
+      contadorTeclado++;
+
+    }
+
+  }
+  //datoTag =idProduccionString;
+  datoTag = idProduccionString;
+
 }
