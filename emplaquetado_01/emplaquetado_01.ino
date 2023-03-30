@@ -1118,7 +1118,7 @@ void descuentaJuegosPorCalidad() {
       digitalWrite(ledPin, LOW);
       Serial.print("rótulos enviados");
       Serial.println(rotulo);
-      proceso = 15;
+      proceso = 8;
       P = juegosParaRestar;
       distancia = idNombre;
 
@@ -1128,6 +1128,9 @@ void descuentaJuegosPorCalidad() {
       juegosParaRestar="";
       lcd.clear();
       //return;
+      leerMasa();
+      //rotulo = "";
+      lcd.clear();
 
     }
 
