@@ -69,6 +69,7 @@ char idP[16];
 char id_Molde[4];
 
 int cuentaRevision = 0;
+int lecturaJuegos=0;
 
 int idProduccionMenor = 0;
 int idProduccionMayor = 0;
@@ -568,6 +569,20 @@ void enviarDatos() {
     client.println("Connection: close");
     client.println();
     Serial.println("Envio con exito (al archivo controller/index y models/herramienta)");
+    Serial.print("/ proceso:");
+    Serial.print (proceso);
+    Serial.print("- hum/estación:" );
+    Serial.print (hum);
+    Serial.print("-/juegos/temp/gramos:" );
+    Serial.print(temp);
+    Serial.print("-pre/idMolde: " );
+    Serial.print(P );
+    Serial.print("-dist/cod_molde/idEmplaquetador:" );
+    Serial.print(distancia);
+    Serial.print("-rotulo:");
+    Serial.print(rotulo);
+    Serial.print("-cuentaLecturas:");
+    Serial.println(cuentaLecturas);
     lcd.setCursor(0, 0);
     lcd.print("Envio Exitoso");
 
@@ -853,10 +868,10 @@ void leerTeclado() {
       //idProduccionString = "";
       lcd.clear();
       lcd.setCursor(0, 0);
-      lcd.print("Juegos=");
+      lcd.print("J.Descartados");
       descuentaJuegosPorCalidad();
       //rotulo = "";
-      
+
 
       //return;
     }
@@ -1061,6 +1076,19 @@ void leerMasa() {
 
     if (digitalRead(tareButton) == HIGH) {
       scale.tare();
+      unsigned long tareTime = millis();
+        while (digitalRead(tareButton) == HIGH) {
+
+          if (millis() - tareTime > 1200) {
+            Serial.println(">>> menú principal !");
+            //ESP.restart();
+            //client.stop();
+            //client.flush();
+            lecturaMasa++;
+            salida++;
+            return;
+          }
+        }
     }
 
     if (digitalRead(WIFI_PIN) == HIGH) {
@@ -1083,6 +1111,7 @@ void leerMasa() {
 
       enviarDatos();
       rotulo = "";
+      faltan = "";
       //lcd.clear();
       //return;
 
@@ -1095,7 +1124,7 @@ void leerMasa() {
 
 void descuentaJuegosPorCalidad() {
   //cuentaEnvio=0;
-  int lecturaJuegos = 0; //variable para indicar el envío de un peso a producto a granel
+ lecturaJuegos = 0; //variable para indicar el envío de un peso a producto a granel
   // se modifica al presionar botón de envío.
 
   while (lecturaJuegos == 0) {
@@ -1125,7 +1154,8 @@ void descuentaJuegosPorCalidad() {
       enviarDatos();
       //rotulo = "";
       faltan = "";
-      juegosParaRestar="";
+      juegosParaRestar = "";
+      P="";
       lcd.clear();
       //return;
       leerMasa();
@@ -1145,7 +1175,9 @@ void TecladoDescuentaJuegos() {
   if (tecla != NO_KEY) {
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("Juegos=");
+    lcd.print("J.Descartados=");
+    //lcd.setCursor(0, 1);
+    //lcd.print("=");
 
     if (tecla == '*') {
 
@@ -1155,9 +1187,9 @@ void TecladoDescuentaJuegos() {
         int largoString;
         largoString = idProduccionString.length();
         idProduccionString.remove(largoString - 1);
-        lcd.setCursor(8, 0);
+        lcd.setCursor(5, 1);
         lcd.print(idProduccionString);
-        lcd.setCursor(contadorTeclado + 8 , 0);
+        lcd.setCursor(contadorTeclado + 5 , 1);
         lcd.print(" ");
 
       }
@@ -1168,26 +1200,38 @@ void TecladoDescuentaJuegos() {
     else if (tecla == '#') {
       //aquí guardo el string en un rótulo,
       juegosParaRestar = datoTag;//tiene significado en la función de leerNombres
-
+      datoTag = "";
       cuentaLecturas = 1;
       contadorTeclado = 0;
       idProduccionString = "";
-      
 
 
 
-      lcd.setCursor(8, 0);
-      lcd.print(datoTag + "->OK");
+
+      lcd.setCursor(5, 1);
+      lcd.print(juegosParaRestar + "->OK");
       Serial.print("Juegos de dientes a restar por mala calidad ");
       Serial.println(juegosParaRestar);
+    }
+
+      else if (tecla == 'A') {
+      datoTag = "";
+      lecturaJuegos++;
+      salida++;
+      contadorTeclado = 0;
+      idProduccionString = "";
+      lcd.clear();
+
+
+
     }
 
 
     else {
       idProduccion[contadorTeclado] = tecla;
-      lcd.setCursor(8, 0);
+      lcd.setCursor(5, 1);
       lcd.print(idProduccionString);
-      lcd.setCursor(contadorTeclado + 8 , 0);
+      lcd.setCursor(contadorTeclado + 5, 1);
       lcd.print(tecla);
 
 
