@@ -69,7 +69,7 @@ char idP[16];
 char id_Molde[4];
 
 int cuentaRevision = 0;
-int lecturaJuegos=0;
+int lecturaJuegos = 0;
 
 int idProduccionMenor = 0;
 int idProduccionMayor = 0;
@@ -869,7 +869,24 @@ void leerTeclado() {
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("J.Descartados");
+      //descuentaJuegosPorCalidad();
+      registrarCalidadPorMasa();
+      //rotulo = "";
+
+
+      //return;
+    }
+
+    else if (tecla == 'B') {
+      //rotulo = datoTag;
+      cuentaLecturas = 1;
+      contadorTeclado = 0;
+      //idProduccionString = "";
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("J.Descartados");
       descuentaJuegosPorCalidad();
+      //registrarCalidadPorMasa();
       //rotulo = "";
 
 
@@ -1072,23 +1089,23 @@ void leerMasa() {
     masa = String(scale.get_units(), 0);
     temp = String(masa).toInt();
 
-    lcd.print("   " + (String(scale.get_units(), 0)) + " gramos    ");
+    lcd.print("Sobra: " + (String(scale.get_units(), 0)) + " gr      ");
 
     if (digitalRead(tareButton) == HIGH) {
       scale.tare();
       unsigned long tareTime = millis();
-        while (digitalRead(tareButton) == HIGH) {
+      while (digitalRead(tareButton) == HIGH) {
 
-          if (millis() - tareTime > 1200) {
-            Serial.println(">>> menú principal !");
-            //ESP.restart();
-            //client.stop();
-            //client.flush();
-            lecturaMasa++;
-            salida++;
-            return;
-          }
+        if (millis() - tareTime > 1200) {
+          Serial.println(">>> menú principal !");
+          //ESP.restart();
+          //client.stop();
+          //client.flush();
+          lecturaMasa++;
+          salida++;
+          return;
         }
+      }
     }
 
     if (digitalRead(WIFI_PIN) == HIGH) {
@@ -1124,7 +1141,7 @@ void leerMasa() {
 
 void descuentaJuegosPorCalidad() {
   //cuentaEnvio=0;
- lecturaJuegos = 0; //variable para indicar el envío de un peso a producto a granel
+  lecturaJuegos = 0; //variable para indicar el envío de un peso a producto a granel
   // se modifica al presionar botón de envío.
 
   while (lecturaJuegos == 0) {
@@ -1155,7 +1172,7 @@ void descuentaJuegosPorCalidad() {
       //rotulo = "";
       faltan = "";
       juegosParaRestar = "";
-      P="";
+      P = "";
       lcd.clear();
       //return;
       leerMasa();
@@ -1214,7 +1231,7 @@ void TecladoDescuentaJuegos() {
       Serial.println(juegosParaRestar);
     }
 
-      else if (tecla == 'A') {
+    else if (tecla == 'A') {
       datoTag = "";
       lecturaJuegos++;
       salida++;
@@ -1251,4 +1268,105 @@ void TecladoDescuentaJuegos() {
   //datoTag =idProduccionString;
   datoTag = idProduccionString;
 
+}
+
+/////////////////////////////////////////////////////77
+
+void registrarCalidadPorMasa() {
+  //cuentaEnvio=0;
+  masa = "";
+  int lecturaMasa = 0; //variable para indicar el envío de un peso a producto a granel
+  // se modifica al presionar botón de envío.
+  String problemaDeCalidad = "";
+  while (lecturaMasa <= 3) {
+    Serial.print("Reading: ");
+    Serial.println(scale.get_units(), 0);
+    //lcd.clear();
+
+    lcd.setCursor(0, 0);
+    lcd.print("Rotulo=");
+    lcd.setCursor(7, 0);
+    lcd.print(rotulo);
+    lcd.setCursor(0, 1);
+    //lcd.print(scale.get_units(), 0);
+
+  
+    //temp = String(masa).toInt();
+    if (lecturaMasa == 0) {
+      problemaDeCalidad = "Beta";
+    }
+    else if (lecturaMasa == 1) {
+      problemaDeCalidad = "Sucio";
+    }
+    else {
+      problemaDeCalidad = "Otros";
+    }
+    lcd.print(problemaDeCalidad + ": " + (String(scale.get_units(), 0)) + " gr       ");
+
+    if (digitalRead(tareButton) == HIGH) {
+      scale.tare();
+      unsigned long tareTime = millis();
+      while (digitalRead(tareButton) == HIGH) {
+
+        if (millis() - tareTime > 1200) {
+          Serial.println(">>> menú principal !");
+          //ESP.restart();
+          //client.stop();
+          //client.flush();
+          lecturaMasa = 3;
+          salida++;
+          return;
+        }
+      }
+    }
+
+    if (digitalRead(WIFI_PIN) == HIGH) {
+      //hum = 2;
+      if (lecturaMasa >= 3) {
+        lecturaMasa++;
+        salida++;
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Enviando:");
+        //lcd.setCursor(0, 1);
+        //lcd.print("-->Acabado");
+        //cuentaEnvio++;
+        digitalWrite(ledPin, HIGH);
+        delay(700);
+        digitalWrite(ledPin, LOW);
+        Serial.print("rótulos enviados");
+        Serial.println(rotulo);
+        proceso = 15;
+        distancia = idNombre;
+        P = masa;
+        enviarDatos();
+        masa = "";
+        faltan = "";
+
+        P = "";
+        lcd.clear();
+        //return;
+        leerMasa();
+        //rotulo = "";
+        lcd.clear();
+      }
+    }
+
+    char tecla ;
+
+    tecla  = teclado.getKey();
+    if (tecla != NO_KEY) {
+      lcd.setCursor(13, 1);
+        lcd.print("OK!");
+      lecturaMasa++;
+      delay(500);
+        if (masa == "") {
+      masa = String(scale.get_units(), 0);
+    }
+    else {
+      masa = masa + "$" + String(scale.get_units(), 0);
+    }
+    }
+
+  }
 }
