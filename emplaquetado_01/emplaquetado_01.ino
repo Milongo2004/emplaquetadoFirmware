@@ -1275,10 +1275,11 @@ void TecladoDescuentaJuegos() {
 void registrarCalidadPorMasa() {
   //cuentaEnvio=0;
   masa = "";
+  String masaSobra = "";
   int lecturaMasa = 0; //variable para indicar el envío de un peso a producto a granel
   // se modifica al presionar botón de envío.
   String problemaDeCalidad = "";
-  while (lecturaMasa <= 3) {
+  while (lecturaMasa <= 4) {
     Serial.print("Reading: ");
     Serial.println(scale.get_units(), 0);
     //lcd.clear();
@@ -1290,7 +1291,7 @@ void registrarCalidadPorMasa() {
     lcd.setCursor(0, 1);
     //lcd.print(scale.get_units(), 0);
 
-  
+
     //temp = String(masa).toInt();
     if (lecturaMasa == 0) {
       problemaDeCalidad = "Beta";
@@ -1298,8 +1299,14 @@ void registrarCalidadPorMasa() {
     else if (lecturaMasa == 1) {
       problemaDeCalidad = "Sucio";
     }
-    else {
+    else if (lecturaMasa == 2) {
+      problemaDeCalidad = "Plast";
+    }
+    else if (lecturaMasa == 3) {
       problemaDeCalidad = "Otros";
+    }
+    else {
+      problemaDeCalidad = "Sobra";
     }
     lcd.print(problemaDeCalidad + ": " + (String(scale.get_units(), 0)) + " gr       ");
 
@@ -1313,8 +1320,9 @@ void registrarCalidadPorMasa() {
           //ESP.restart();
           //client.stop();
           //client.flush();
-          lecturaMasa = 3;
+          lecturaMasa = 5;
           salida++;
+          lcd.clear();
           return;
         }
       }
@@ -1322,7 +1330,7 @@ void registrarCalidadPorMasa() {
 
     if (digitalRead(WIFI_PIN) == HIGH) {
       //hum = 2;
-      if (lecturaMasa >= 3) {
+      if (lecturaMasa >= 4) {
         lecturaMasa++;
         salida++;
         lcd.clear();
@@ -1339,16 +1347,18 @@ void registrarCalidadPorMasa() {
         proceso = 15;
         distancia = idNombre;
         P = masa;
+        masaSobra = String(scale.get_units(), 0);
+        temp = String(masaSobra).toInt();
         enviarDatos();
         masa = "";
+        rotulo = "";
         faltan = "";
-
         P = "";
         lcd.clear();
         //return;
-        leerMasa();
+        //leerMasa();
         //rotulo = "";
-        lcd.clear();
+        //lcd.clear();
       }
     }
 
@@ -1357,15 +1367,15 @@ void registrarCalidadPorMasa() {
     tecla  = teclado.getKey();
     if (tecla != NO_KEY) {
       lcd.setCursor(13, 1);
-        lcd.print("OK!");
+      lcd.print("OK!");
       lecturaMasa++;
       delay(500);
-        if (masa == "") {
-      masa = String(scale.get_units(), 0);
-    }
-    else {
-      masa = masa + "$" + String(scale.get_units(), 0);
-    }
+      if (masa == "") {
+        masa = String(scale.get_units(), 0);
+      }
+      else {
+        masa = masa + "$" + String(scale.get_units(), 0);
+      }
     }
 
   }
