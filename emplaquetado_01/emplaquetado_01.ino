@@ -1368,6 +1368,7 @@ void registrarCalidadPorMasa() {
     if (tecla != NO_KEY) {
       lcd.setCursor(13, 1);
       lcd.print("OK!");
+      if (lecturaMasa<4){
       lecturaMasa++;
       delay(500);
       if (masa == "") {
@@ -1376,6 +1377,7 @@ void registrarCalidadPorMasa() {
       else {
         masa = masa + "$" + String(scale.get_units(), 0);
       }
+    }
     }
 
   }
