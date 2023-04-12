@@ -31,7 +31,7 @@
 #define LOADCELL_SCK_PIN  17
 
 HX711 scale;
-float calibration_factor = -266; //-7050 worked for my 440lb max scale setup
+float calibration_factor = -276; //-7050 worked for my 440lb max scale setup
 
 #define tareButton 39
 String masa;
@@ -207,11 +207,11 @@ String respRef = "";
 //const char* ssid = "PRODUCCION_MASTERDENT_EXT";
 //const char* password = "M4ST3RD3NT2021.";
 
-const char* ssid = "Masterdent- wifi prod";
-const char* password = "Masterdent2022*";
+//const char* ssid = "Masterdent- wifi prod";
+//const char* password = "Masterdent2022*";
 
-//const char* ssid = "Masterdent Bodega";
-//const char* password = "Masterdent2022";
+const char* ssid = "Masterdent Bodega";
+const char* password = "Masterdent2022";
 
 //const char* ssid = "Masterdent1";
 //const char* password = "milo2004";
