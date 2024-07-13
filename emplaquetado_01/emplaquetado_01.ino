@@ -1300,9 +1300,12 @@ void registrarCalidadPorMasa() {
       problemaDeCalidad = "Sucio";
     }
     else if (lecturaMasa == 2) {
-      problemaDeCalidad = "Plast";
+      problemaDeCalidad = "Revol";
     }
     else if (lecturaMasa == 3) {
+      problemaDeCalidad = "Trasl";
+    }
+    else if (lecturaMasa == 4) {
       problemaDeCalidad = "Otros";
     }
     else {
