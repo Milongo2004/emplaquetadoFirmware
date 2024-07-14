@@ -31,7 +31,7 @@
 #define LOADCELL_SCK_PIN  17
 
 HX711 scale;
-float calibration_factor = -276; //-7050 worked for my 440lb max scale setup
+float calibration_factor = -296.2; //-7050 worked for my 440lb max scale setup
 
 #define tareButton 39
 String masa;
@@ -1279,7 +1279,7 @@ void registrarCalidadPorMasa() {
   int lecturaMasa = 0; //variable para indicar el envío de un peso a producto a granel
   // se modifica al presionar botón de envío.
   String problemaDeCalidad = "";
-  while (lecturaMasa <= 4) {
+  while (lecturaMasa <= 5) {
     Serial.print("Reading: ");
     Serial.println(scale.get_units(), 0);
     //lcd.clear();
@@ -1323,7 +1323,7 @@ void registrarCalidadPorMasa() {
           //ESP.restart();
           //client.stop();
           //client.flush();
-          lecturaMasa = 5;
+          lecturaMasa = 6;
           salida++;
           lcd.clear();
           return;
@@ -1333,7 +1333,7 @@ void registrarCalidadPorMasa() {
 
     if (digitalRead(WIFI_PIN) == HIGH) {
       //hum = 2;
-      if (lecturaMasa >= 4) {
+      if (lecturaMasa >= 5) {
         lecturaMasa++;
         salida++;
         lcd.clear();
@@ -1371,7 +1371,7 @@ void registrarCalidadPorMasa() {
     if (tecla != NO_KEY) {
       lcd.setCursor(13, 1);
       lcd.print("OK!");
-      if (lecturaMasa<4){
+      if (lecturaMasa<5){
       lecturaMasa++;
       delay(500);
       if (masa == "") {
